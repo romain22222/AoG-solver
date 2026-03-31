@@ -14,6 +14,9 @@ if __name__ == "__main__":
 	for constraint in testedConstraints:
 		hasattr(constraint, "vertices") and constraint.set_vertices(testedVertices)
 
+	for constraint in testedConstraints:
+		hasattr(constraint, "all_symbols") and constraint.set_symbols(testedVertices)
+
 	testedGrid.setConstraints(testedConstraints)
 
 	solver = Solver(testedGrid, testedConstraints)

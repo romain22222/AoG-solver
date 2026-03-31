@@ -11,6 +11,7 @@ from constraints.mismatch_shape import MismatchShapeConstraint
 from constraints.boxy import BoxyConstraint
 from constraints.non_boxy import NonBoxyConstraint
 from constraints.polyomino import PolyominoConstraint, PolyominoSymbol
+from constraints.solitude import SolitudeConstraint
 
 __all__ = [
 	'Constraint',
@@ -34,4 +35,5 @@ __all__ = [
 	'NonBoxyConstraint',
 	'PolyominoConstraint',
 	'PolyominoSymbol',
+	'SolitudeConstraint',
 ]
