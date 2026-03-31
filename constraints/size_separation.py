@@ -16,7 +16,7 @@ class SizeSeparationConstraint(Constraint):
 			targetSize = targetRange[0]
 			for q in state.uf.getAdjacent(p):
 				if q not in state.uf.parentList:
-					# Got fused with another region
+					# Fused with another region
 					continue
 				if state.uf.size[q] == targetSize:
 					connectables = state.uf.connectables[q]

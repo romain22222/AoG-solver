@@ -19,12 +19,12 @@ initialState = State(testedGrid)
 
 solver.solve(initialState)
 
-print(f"Nombre de solutions trouvées : {len(solver.solutions)}")
+print(f"Number of solutions found: {len(solver.solutions)}")
 for solutionNumber, solution in enumerate(solver.solutions):
 	print(f"\n=== Solution {solutionNumber + 1} ===")
 	solution.show(testedConstraints, puzzle["holes"])
 	
-	# Analyse des régions
+	# Analyze regions
 	regions = {}
 	for cell in solution.grid.cells:
 		region_id = solution.uf.find(cell)
@@ -32,23 +32,23 @@ for solutionNumber, solution in enumerate(solver.solutions):
 			regions[region_id] = []
 		regions[region_id].append(cell)
 	
-	print(f"Régions trouvées : {len(regions)}")
+	print(f"Regions found: {len(regions)}")
 	for i, (region_id, cells) in enumerate(sorted(regions.items())):
 		connectables = solution.uf.connectables.get(region_id, set())
 		adjacents = solution.uf.getAdjacent(region_id)
-		print(f"\nRégion {region_id}: taille={len(cells)}, cells={sorted(cells)}")
+		print(f"\nRegion {region_id}: size={len(cells)}, cells={sorted(cells)}")
 		print(f"  connectables[{region_id}] = {connectables}")
 		print(f"  getAdjacent({region_id}) = {adjacents}")
 		
-		# Vérifier unjoinable
+		# Check unjoinable
 		unjoinable_pairs = [r for r in solution.uf.unjoinable if region_id in r]
 		if unjoinable_pairs:
 			print(f"  unjoinable pairs: {unjoinable_pairs}")
 		
-		# Vérifier si deux régions adjacentes ont la même taille
+		# Check if two adjacent regions have the same size
 		for adj in adjacents:
 			if solution.uf.size[region_id] == solution.uf.size[adj]:
-				print(f"    ⚠️  VIOLATION: Région {region_id} (taille {solution.uf.size[region_id]}) adjacente à {adj} (taille {solution.uf.size[adj]})")
+				print(f"    ⚠️  VIOLATION: Region {region_id} (size {solution.uf.size[region_id]}) adjacent to {adj} (size {solution.uf.size[adj]})")
 	
 	print("---")
 

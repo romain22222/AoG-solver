@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
 	solver.solve(initialState)
 
-	print("Nombre de solutions trouvées :", len(solver.solutions))
+	print("Number of solutions found:", len(solver.solutions))
 	for solutionNumber, solution in enumerate(solver.solutions):
 		print(f"Solution {solutionNumber + 1}:")
 		solution.show(testedConstraints, puzzle["holes"])

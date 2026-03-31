@@ -53,7 +53,7 @@ def canonical_edge(grid: Grid, cell: Position, d: Direction) -> Edge:
 	n = grid.neighbor(cell, d)
 
 	if n is None:
-		return cell, d  # bord
+		return cell, d  # border
 
 	other = (n, OPPOSITE[d])
 	return tuple(sorted([(cell, d), other]))
@@ -116,7 +116,7 @@ class UnionFind:
 			ra, rb = rb, ra
 
 		self.parent[rb] = ra
-		# change parent where parent is rb to ra
+		# Update parent where parent is rb to ra
 		for p in self.parent.keys():
 			if self.parent[p] == rb:
 				self.parent[p] = ra
@@ -264,7 +264,7 @@ class State:
 		if self.edges[edge] is not EdgeState.UNKNOWN:
 			return self.edges[edge] == val
 
-		# interdiction mur dans même région
+		# Forbid walls in same region
 		a, b = edge_cells(edge)
 		ra, rb = self.uf.find(a) if a else None, self.uf.find(b) if b else None
 		if val == EdgeState.PRESENT and a and b and ra == rb:
@@ -318,7 +318,7 @@ class State:
 		oddLines = ["  " * self.grid.width + " " for _ in range(self.grid.height)]
 		for h in holes:
 			oddLines[h[1]] = oddLines[h[1]][:2 * h[0] + 1] + holeText + oddLines[h[1]][2 * h[0] + 2:]
-		# Pour chaque cellule, retirer les murs correspondants
+		# For each cell, remove corresponding walls
 		for edge, state in self.edges.items():
 			e = edge if isinstance(edge[1], tuple) else (edge, None)
 			replaceEdge = edgeUnknownText if self.edges[edge] is EdgeState.UNKNOWN else edgesText[e[0][1]]
@@ -337,7 +337,7 @@ class State:
 
 		for c in constraints:
 			hasattr(c, "show") and c.show(self, evenLines, oddLines)
-		# Afficher le résultat
+		# Display result
 		t = ""
 		for i in range(self.grid.height * 2 + 1):
 			if i % 2 == 0:
