@@ -26,4 +26,3 @@ if __name__ == "__main__":
 		print(f"Solution {solutionNumber + 1}:")
 		solution.show(testedConstraints, puzzle["holes"])
 		print("---")
-

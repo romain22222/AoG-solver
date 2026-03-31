@@ -1,3 +1,5 @@
+from typing import Set, Tuple
+
 from edges import EdgeState
 from position import Position
 
@@ -69,3 +71,77 @@ def closeRegion(state, p: Position, willTakeConnectables: bool) -> bool:
 		for c in tmp:
 			separateRegions(state, p, c)
 	return True
+
+
+def get_region_cells(state, region_id: Position) -> Set[Position]:
+	return set([cell for cell in state.grid.cells if state.uf.find(cell) == region_id])
+
+
+def get_region_shape(region_cells: Set[Position]) -> Tuple[Tuple[int, int], ...]:
+	min_x = min(x for x, y in region_cells)
+	min_y = min(y for x, y in region_cells)
+
+	normalized = frozenset((x - min_x, y - min_y) for x, y in region_cells)
+	all_variants = [normalized]
+
+	rotated = frozenset((y, -x) for x, y in normalized)
+	min_rx = min(x for x, y in rotated)
+	min_ry = min(y for x, y in rotated)
+	all_variants.append(frozenset((x - min_rx, y - min_ry) for x, y in rotated))
+
+	rotated = frozenset((-x, -y) for x, y in normalized)
+	min_rx = min(x for x, y in rotated)
+	min_ry = min(y for x, y in rotated)
+	all_variants.append(frozenset((x - min_rx, y - min_ry) for x, y in rotated))
+
+	rotated = frozenset((-y, x) for x, y in normalized)
+	min_rx = min(x for x, y in rotated)
+	min_ry = min(y for x, y in rotated)
+	all_variants.append(frozenset((x - min_rx, y - min_ry) for x, y in rotated))
+
+	reflected = frozenset((-x, y) for x, y in normalized)
+	min_rx = min(x for x, y in reflected)
+	min_ry = min(y for x, y in reflected)
+	all_variants.append(frozenset((x - min_rx, y - min_ry) for x, y in reflected))
+
+	reflected = frozenset((x, -y) for x, y in normalized)
+	min_rx = min(x for x, y in reflected)
+	min_ry = min(y for x, y in reflected)
+	all_variants.append(frozenset((x - min_rx, y - min_ry) for x, y in reflected))
+
+	reflected = frozenset((y, x) for x, y in normalized)
+	min_rx = min(x for x, y in reflected)
+	min_ry = min(y for x, y in reflected)
+	all_variants.append(frozenset((x - min_rx, y - min_ry) for x, y in reflected))
+
+	reflected = frozenset((-y, -x) for x, y in normalized)
+	min_rx = min(x for x, y in reflected)
+	min_ry = min(y for x, y in reflected)
+	all_variants.append(frozenset((x - min_rx, y - min_ry) for x, y in reflected))
+
+	return tuple(sorted(min(all_variants)))
+
+
+def is_rectangle(region_cells: Set[Position]) -> bool:
+	min_x = min(x for x, y in region_cells)
+	max_x = max(x for x, y in region_cells)
+	min_y = min(y for x, y in region_cells)
+	max_y = max(y for x, y in region_cells)
+
+	width = max_x - min_x + 1
+	height = max_y - min_y + 1
+
+	return len(region_cells) == width * height
+
+
+def shapes_equal(shape1: Tuple[Tuple[int, int], ...], shape2: Tuple[Tuple[int, int], ...]) -> bool:
+	return shape1 == shape2
+
+
+def get_region_shapes(state) -> dict[Position, Tuple[Tuple[int, int], ...]]:
+	shapes = {}
+	for region_id in state.uf.parentList:
+		if len(state.uf.connectables[region_id]) == 0:
+			cells = get_region_cells(state, region_id)
+			shapes[region_id] = get_region_shape(cells)
+	return shapes
