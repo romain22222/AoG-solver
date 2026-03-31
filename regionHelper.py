@@ -67,5 +67,5 @@ def closeRegion(state, p: Position, willTakeConnectables: bool) -> bool:
 			tmp = set(state.uf.connectables[state.uf.find(p)])
 	else:
 		for c in tmp:
-			separateRegions(p, c)
+			separateRegions(state, p, c)
 	return True

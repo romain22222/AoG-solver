@@ -3,7 +3,7 @@ from examples import puzzleList
 
 if __name__ == "__main__":
 	# You can change this to any puzzle name from the puzzleList dictionary
-	puzzle_name = "watchtower"
+	puzzle_name = "size_separation"
 	puzzle = puzzleList[puzzle_name]
 	
 	testedGrid = puzzle["grid"]

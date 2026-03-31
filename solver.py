@@ -96,7 +96,7 @@ class UnionFind:
 		c = UnionFind(self.elements)
 		c.parent = self.parent.copy()
 		c.size = self.size.copy()
-		c.unjoinable = self.unjoinable.copy()
+		c.unjoinable = [pair.copy() for pair in self.unjoinable]  # Deep copy unjoinable pairs
 		c.parentList = self.parentList.copy()
 		c.connectables = {k: v.copy() for k, v in self.connectables.items()}
 		return c
@@ -128,6 +128,19 @@ class UnionFind:
 				self.unjoinable[i][0] = ra
 			if self.unjoinable[i][1] == rb:
 				self.unjoinable[i][1] = ra
+			# Re-normalize the pair order after replacement
+			if totalOrder(self.unjoinable[i][1], self.unjoinable[i][0]):
+				self.unjoinable[i][0], self.unjoinable[i][1] = self.unjoinable[i][1], self.unjoinable[i][0]
+		
+		# Remove duplicates in unjoinable after normalization
+		seen = set()
+		unique_unjoinable = []
+		for pair in self.unjoinable:
+			pair_tuple = (pair[0], pair[1])
+			if pair_tuple not in seen:
+				seen.add(pair_tuple)
+				unique_unjoinable.append(pair)
+		self.unjoinable = unique_unjoinable
 		cpyconra = self.connectables[ra].copy()
 		for v in self.connectables[ra]:
 			if [ra, v] in self.unjoinable or [v, ra] in self.unjoinable or v == rb:
@@ -149,7 +162,10 @@ class UnionFind:
 		ra, rb = self.find(a), self.find(b)
 		if ra == rb:
 			return False
-		if not [ra, rb] in self.unjoinable or not [rb, ra] in self.unjoinable:
+		# Normalize pair order for consistent storage
+		if totalOrder(rb, ra):
+			ra, rb = rb, ra
+		if [ra, rb] not in self.unjoinable:
 			self.unjoinable.append([ra, rb])
 		if rb in self.connectables[ra]:
 			self.connectables[ra].remove(rb)
@@ -160,14 +176,31 @@ class UnionFind:
 		ra, rb = self.find(a), self.find(b)
 		if ra == rb:
 			return True
-		if [ra, rb] in self.unjoinable or [rb, ra] in self.unjoinable:
+		# Normalize pair order
+		if totalOrder(rb, ra):
+			ra, rb = rb, ra
+		if [ra, rb] in self.unjoinable:
 			return False
 		return True
 
+	def getAdjacent(self, a) -> Set:
+		ra = self.find(a)
+		unjoinable_pairs = [r for r in self.unjoinable if ra in r]
+		# Normalize representatives after unions and filter out self-references
+		adjacent_set = set()
+		for r in unjoinable_pairs:
+			neighbor = r[0] if r[1] == ra else r[1]
+			neighbor = self.find(neighbor)
+			if neighbor != ra:  # Don't include self-references
+				adjacent_set.add(neighbor)
+		adjacent_set.update(self.connectables[ra])
+		return adjacent_set
 
-# =========================
-# REGION UTILITIES
-# =========================
+	def getInsides(self, a) -> Set:
+		ra = self.find(a)
+		return set([e for e in self.elements if self.find(e) == ra])
+
+
 
 
 # =========================
@@ -244,13 +277,11 @@ class State:
 		self.edges[edge] = val
 		if val == EdgeState.ABSENT and a and b:
 			if recursiveSplit:
-				joinRegions(self, a, b)
-				if not self.uf.union(a, b):
+				if not joinRegions(self, a, b):
 					return False
 		elif val == EdgeState.PRESENT and a and b:
 			if recursiveSplit:
-				separateRegions(self, a, b)
-				if not self.uf.disjoint(a, b):
+				if not separateRegions(self, a, b):
 					return False
 		return True
 
@@ -385,6 +416,7 @@ class Solver:
 			shouldRepeat = s.calledSetEdge
 
 		state.set(s)
+		state.show(state.grid.constraints, state.grid.holes)
 		return True
 
 	def solve(self, state: State) -> None:
