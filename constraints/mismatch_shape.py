@@ -1,23 +1,16 @@
 from constraints import Constraint
-from regionHelper import get_region_shapes, shapes_equal, regionSizeHelper
+from regionHelper import get_region_shapes, shapes_equal
 
 
 class MismatchShapeConstraint(Constraint):
-    def __init__(self):
-        super().__init__()
-    
-    def propagate(self, state) -> bool:
-        shapes = get_region_shapes(state)
-        shape_list = []
+	def __init__(self):
+		super().__init__()
 
-        for region_id, shape in shapes.items():
-            size_range = regionSizeHelper(state, region_id)
-            if size_range[0] == size_range[1]:
-                shape_list.append(shape)
+	def propagate(self, state) -> bool:
+		shapes = get_region_shapes(state)
+		for i, shape1 in enumerate(shapes):
+			for j, shape2 in enumerate(shapes):
+				if i != j and shapes_equal(shape1, shape2):
+					return False
 
-        for i, shape1 in enumerate(shape_list):
-            for j, shape2 in enumerate(shape_list):
-                if i != j and shapes_equal(shape1, shape2):
-                    return False
-        
-        return True
+		return True

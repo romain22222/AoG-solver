@@ -11,8 +11,7 @@ class MatchConstraint(Constraint):
         if self.reference_shape is None:
             for region_id in state.uf.parentList:
                 cells = get_region_cells(state, region_id)
-                size_range = regionSizeHelper(state, region_id)
-                if size_range[0] == size_range[1]:
+                if len(state.uf.connectables[region_id]) == 0:
                     self.reference_shape = get_region_shape(cells)
                     break
             else:
@@ -23,7 +22,7 @@ class MatchConstraint(Constraint):
             actual_shape = get_region_shape(cells)
             
             size_range = regionSizeHelper(state, region_id)
-            if size_range[0] == size_range[1]:
+            if len(state.uf.connectables[region_id]) == 0:
                 if not shapes_equal(actual_shape, self.reference_shape):
                     return False
             else:

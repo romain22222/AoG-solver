@@ -1,5 +1,5 @@
 from constraints.base import Constraint, GridSymbol
-from regionHelper import get_region_cells, get_region_shape, shapes_equal, regionSizeHelper
+from regionHelper import get_region_cells, get_region_shape, shapes_equal, regionSizeHelper, closeRegion
 
 
 class PolyominoSymbol(GridSymbol):
@@ -13,7 +13,7 @@ class PolyominoSymbol(GridSymbol):
         size_range = regionSizeHelper(state, region_id)
         min_size, max_size = size_range
         
-        if size_range[0] == size_range[1]:
+        if len(state.uf.connectables[region_id]) == 0:
             actual_shape = get_region_shape(cells)
             return shapes_equal(actual_shape, self.shape)
         else:
@@ -22,6 +22,11 @@ class PolyominoSymbol(GridSymbol):
                 return False
             if min_size > required_size:
                 return False
+            elif min_size == required_size:
+                if not closeRegion(state, region_id):
+                    return False
+                actual_shape = get_region_shape(cells)
+                return shapes_equal(actual_shape, self.shape)
             return True
 
 
