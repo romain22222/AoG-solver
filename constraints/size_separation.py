@@ -8,7 +8,6 @@ class SizeSeparationConstraint(Constraint):
 		super().__init__()
 
 	def propagate(self, state: State) -> bool:
-		entry=0
 		for p in state.uf.parentList:
 			targetRange = regionSizeHelper(state, p)
 			if targetRange[0] != targetRange[1]:

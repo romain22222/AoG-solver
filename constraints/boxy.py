@@ -27,7 +27,7 @@ class BoxyConstraint(Constraint):
                 return False
             
             for m in missing_cells:
-                if not state.uf.union(cells[0], m):
+                if not state.uf.union(region_id, m):
                     return False
             else:
                 return self.propagate(state)

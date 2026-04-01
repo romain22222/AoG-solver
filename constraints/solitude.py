@@ -1,4 +1,4 @@
-from constraints.base import Constraint, GridSymbol
+from constraints.base import Constraint
 from regionHelper import joinRegions, separateRegions
 
 

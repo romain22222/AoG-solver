@@ -1,5 +1,4 @@
 from regionHelper import regionSizeHelper, closeRegion
-from edges import EdgeState
 from constraints.base import Constraint, GridSymbol
 
 

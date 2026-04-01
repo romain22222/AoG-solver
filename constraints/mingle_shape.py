@@ -1,5 +1,5 @@
 from constraints import Constraint
-from regionHelper import get_region_shapes, shapes_equal, regionSizeHelper
+from regionHelper import get_region_shapes, shapes_equal
 
 
 class MingleShapeConstraint(Constraint):

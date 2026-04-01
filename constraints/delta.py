@@ -1,7 +1,7 @@
 from constraints import EdgeSymbol
 from constraints.base import SymbolConstraint
 from edges import FullEdge
-from regionHelper import get_region_shape, closeRegion, joinRegions
+from regionHelper import get_region_shape, joinRegions
 
 
 class DeltaSymbol(EdgeSymbol):

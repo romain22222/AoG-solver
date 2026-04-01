@@ -3,6 +3,7 @@ from constraints.bricky import BrickyConstraint
 from constraints.delta import DeltaSymbol, DeltaConstraint
 from constraints.difference import DifferenceConstraint, DifferenceSymbol
 from constraints.gemini import GeminiSymbol, GeminiConstraint
+from constraints.inequality import InequalityConstraint, InequalitySymbol
 from constraints.loopy import LoopyConstraint
 from constraints.region import PrecisionConstraint, MinimumConstraint, MaximumConstraint
 from constraints.palisade import PalisadeConstraint, PalisadeSymbol, CycleType
@@ -51,4 +52,6 @@ __all__ = [
 	'DeltaSymbol',
 	'DifferenceConstraint',
 	'DifferenceSymbol',
+	'InequalityConstraint',
+	'InequalitySymbol',
 ]

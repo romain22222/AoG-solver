@@ -35,14 +35,14 @@ class RoseWindowConstraint(SymbolConstraint):
 		super().__init__(symbols)
 		self.presentShapes = {}
 		self.symbolsPositions = {}
-		for symbol in self.symbols:
+		for symbol in symbols:
 			if not self.presentShapes[symbol.shape]:
 				self.presentShapes[symbol.shape] = 0
 				self.symbolsPositions[symbol.shape] = []
 			self.presentShapes[symbol.shape] += 1
 			self.symbolsPositions[symbol.shape].append(symbol.position)
 		self.cantWork = len(set(self.presentShapes.values())) != 1
-		self.nbRegions = self.presentShapes[self.symbols[0].shape]
+		self.nbRegions = self.presentShapes[symbols[0].shape]
 		self.presentShapes = set(self.presentShapes.keys())
 
 	def propagate(self, state) -> bool:

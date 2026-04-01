@@ -131,7 +131,7 @@ class UnionFind:
 			# Re-normalize the pair order after replacement
 			if totalOrder(self.unjoinable[i][1], self.unjoinable[i][0]):
 				self.unjoinable[i][0], self.unjoinable[i][1] = self.unjoinable[i][1], self.unjoinable[i][0]
-		
+
 		# Remove duplicates in unjoinable after normalization
 		seen = set()
 		unique_unjoinable = []
@@ -199,8 +199,6 @@ class UnionFind:
 	def getInsides(self, a) -> Set:
 		ra = self.find(a)
 		return set([e for e in self.elements if self.find(e) == ra])
-
-
 
 
 # =========================
