@@ -1,5 +1,7 @@
-from constraints.base import Constraint, Symbol, GridSymbol, EdgeSymbol
+from constraints.base import Constraint, Symbol, GridSymbol, EdgeSymbol, VertexSymbol
 from constraints.bricky import BrickyConstraint
+from constraints.delta import DeltaSymbol, DeltaConstraint
+from constraints.gemini import GeminiSymbol, GeminiConstraint
 from constraints.loopy import LoopyConstraint
 from constraints.region import PrecisionConstraint, MinimumConstraint, MaximumConstraint
 from constraints.palisade import PalisadeConstraint, PalisadeSymbol, CycleType
@@ -19,6 +21,7 @@ __all__ = [
 	'Symbol',
 	'GridSymbol',
 	'EdgeSymbol',
+	'VertexSymbol',
 	'BrickyConstraint',
 	'LoopyConstraint',
 	'PrecisionConstraint',
@@ -40,5 +43,9 @@ __all__ = [
 	'SolitudeConstraint',
 	'RoseWindowConstraint',
 	'RoseWindowSymbol',
-	'RoseWindowShape'
+	'RoseWindowShape',
+	'GeminiConstraint',
+	'GeminiSymbol',
+	'DeltaConstraint',
+	'DeltaSymbol',
 ]

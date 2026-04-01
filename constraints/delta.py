@@ -29,7 +29,7 @@ class DeltaSymbol(EdgeSymbol):
 		return True
 
 
-class GeminiConstraint(SymbolConstraint):
+class DeltaConstraint(SymbolConstraint):
 	def propagate(self, state) -> bool:
 		for s in self.symbols:
 			if not s.propagate(state):
