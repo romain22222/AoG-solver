@@ -77,7 +77,11 @@ def get_region_cells(state, region_id: Position) -> Set[Position]:
 	return set([cell for cell in state.grid.cells if state.uf.find(cell) == region_id])
 
 
-def get_region_shape(region_cells: Set[Position]) -> Tuple[Tuple[int, int], ...]:
+def get_region_shape(state, region_id: Position) -> Tuple[Tuple[int, int], ...]:
+	return get_region_shape_hard(get_region_cells(state, state.uf.find(region_id)))
+
+
+def get_region_shape_hard(region_cells: Set[Position]) -> Tuple[Tuple[int, int], ...]:
 	min_x = min(x for x, y in region_cells)
 	min_y = min(y for x, y in region_cells)
 
@@ -143,5 +147,5 @@ def get_region_shapes(state) -> dict[Position, Tuple[Tuple[int, int], ...]]:
 	for region_id in state.uf.parentList:
 		if len(state.uf.connectables[region_id]) == 0:
 			cells = get_region_cells(state, region_id)
-			shapes[region_id] = get_region_shape(cells)
+			shapes[region_id] = get_region_shape_hard(cells)
 	return shapes

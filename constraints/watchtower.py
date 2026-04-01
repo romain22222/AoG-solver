@@ -1,16 +1,14 @@
-from typing import List
-
-from constraints import Symbol, Constraint
+from constraints.base import SymbolConstraint, VertexSymbol
 from position import Position
 from regionHelper import separateRegions, joinRegions
 from solver import State
 
 
-class WatchtowerSymbol(Symbol):
+class WatchtowerSymbol(VertexSymbol):
 	def __init__(self, position: Position, count: int) -> None:
-		super().__init__()
+		super().__init__(position)
 		self.count = count
-		self.position = position
+		self.text = count
 
 	def propagate(self, state) -> bool:
 		# 1- get cells around vertex
@@ -49,18 +47,9 @@ class WatchtowerSymbol(Symbol):
 		return True
 
 
-class WatchtowerConstraint(Constraint):
-	def __init__(self, symbols: list[WatchtowerSymbol]) -> None:
-		super().__init__()
-		self.symbols = symbols
-
+class WatchtowerConstraint(SymbolConstraint):
 	def propagate(self, state: State) -> bool:
 		for symbol in self.symbols:
 			if not symbol.propagate(state):
 				return False
 		return True
-
-	def show(self, state: State, evenLines: List[str], oddLines: List[str]) -> None:
-		for symbol in self.symbols:
-			x, y = symbol.position
-			evenLines[y] = evenLines[y][:2 * x] + str(symbol.count) + evenLines[y][2 * x + 1:]

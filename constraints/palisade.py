@@ -1,6 +1,7 @@
 from enum import Enum
+
+from constraints.base import GridSymbol, SymbolConstraint
 from edges import EdgeState
-from constraints.base import Constraint, GridSymbol
 
 
 class CycleType(Enum):
@@ -48,10 +49,12 @@ palisadeCellText = {
 	CycleType.CELL: "C"
 }
 
+
 class PalisadeSymbol(GridSymbol):
 	def __init__(self, position, cycle: CycleType):
 		super().__init__(position)
 		self.cycle = cycle
+		self.text = palisadeCellText[cycle]
 
 	def propagate(self, state) -> bool:
 		edges = state.cell_edges(self.position)
@@ -115,19 +118,9 @@ class PalisadeSymbol(GridSymbol):
 		return True
 
 
-class PalisadeConstraint(Constraint):
-	def __init__(self, symbols: list[PalisadeSymbol]):
-		self.symbols = symbols
-
+class PalisadeConstraint(SymbolConstraint):
 	def propagate(self, state) -> bool:
 		for symbol in self.symbols:
 			if not symbol.propagate(state):
 				return False
 		return True
-
-	def show(self, state, evenLines, oddLines) -> bool:
-		for symbol in self.symbols:
-			x, y = symbol.position
-			oddLines[y] = oddLines[y][:2 * x + 1] + palisadeCellText[symbol.cycle] + oddLines[y][2 * x + 2:]
-
-

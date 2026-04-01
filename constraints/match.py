@@ -1,5 +1,5 @@
 from constraints import Constraint
-from regionHelper import get_region_cells, get_region_shape, shapes_equal, regionSizeHelper
+from regionHelper import get_region_cells, get_region_shape_hard, shapes_equal, regionSizeHelper
 
 
 class MatchConstraint(Constraint):
@@ -18,7 +18,7 @@ class MatchConstraint(Constraint):
             for region_id in state.uf.parentList:
                 cells = get_region_cells(state, region_id)
                 if len(state.uf.connectables[region_id]) == 0:
-                    self.reference_shape = get_region_shape(cells)
+                    self.reference_shape = get_region_shape_hard(cells)
                     if len(self.reference_shape) not in self.allowed_sizes:
                         return False
                     break
@@ -27,7 +27,7 @@ class MatchConstraint(Constraint):
         
         for region_id in state.uf.parentList:
             cells = get_region_cells(state, region_id)
-            actual_shape = get_region_shape(cells)
+            actual_shape = get_region_shape_hard(cells)
             
             size_range = regionSizeHelper(state, region_id)
             if len(state.uf.connectables[region_id]) == 0:

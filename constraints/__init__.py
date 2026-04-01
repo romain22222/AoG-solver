@@ -1,4 +1,4 @@
-from constraints.base import Constraint, Symbol, GridSymbol
+from constraints.base import Constraint, Symbol, GridSymbol, EdgeSymbol
 from constraints.bricky import BrickyConstraint
 from constraints.loopy import LoopyConstraint
 from constraints.region import PrecisionConstraint, MinimumConstraint, MaximumConstraint
@@ -18,6 +18,7 @@ __all__ = [
 	'Constraint',
 	'Symbol',
 	'GridSymbol',
+	'EdgeSymbol',
 	'BrickyConstraint',
 	'LoopyConstraint',
 	'PrecisionConstraint',

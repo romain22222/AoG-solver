@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import List
 
-from constraints import GridSymbol, Constraint
+from constraints import GridSymbol
+from constraints.base import SymbolConstraint
 from regionHelper import separateRegions, joinRegions
 
 
@@ -13,16 +14,25 @@ class RoseWindowShape(Enum):
 	HEXAGON = 4
 
 
+ROSEWINDOWTEXT = {
+	RoseWindowShape.CIRCLE: "○",
+	RoseWindowShape.SQUARE: "□",
+	RoseWindowShape.ROMBUS: "◇",
+	RoseWindowShape.TRIANGLE: "△",
+	RoseWindowShape.HEXAGON: "⬡"
+}
+
+
 class RoseWindowSymbol(GridSymbol):
 	def __init__(self, position, shape: RoseWindowShape):
 		super().__init__(position)
 		self.shape = shape
+		self.text = ROSEWINDOWTEXT[shape]
 
 
-class RoseWindowConstraint(Constraint):
+class RoseWindowConstraint(SymbolConstraint):
 	def __init__(self, symbols: List[RoseWindowSymbol]):
-		super().__init__()
-		self.symbols = symbols
+		super().__init__(symbols)
 		self.presentShapes = {}
 		self.symbolsPositions = {}
 		for symbol in self.symbols:
