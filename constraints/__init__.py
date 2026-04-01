@@ -4,6 +4,7 @@ from constraints.loopy import LoopyConstraint
 from constraints.region import PrecisionConstraint, MinimumConstraint, MaximumConstraint
 from constraints.palisade import PalisadeConstraint, PalisadeSymbol, CycleType
 from constraints.area_number import AreaNumberConstraint, AreaNumberSymbol
+from constraints.rose_window import RoseWindowSymbol, RoseWindowConstraint, RoseWindowShape
 from constraints.shape_bank import ShapeBankConstraint
 from constraints.mingle_shape import MingleShapeConstraint
 from constraints.match import MatchConstraint
@@ -36,4 +37,7 @@ __all__ = [
 	'PolyominoConstraint',
 	'PolyominoSymbol',
 	'SolitudeConstraint',
+	'RoseWindowConstraint',
+	'RoseWindowSymbol',
+	'RoseWindowShape'
 ]
