@@ -1,6 +1,7 @@
 from constraints.base import Constraint, Symbol, GridSymbol, EdgeSymbol, VertexSymbol
 from constraints.bricky import BrickyConstraint
 from constraints.delta import DeltaSymbol, DeltaConstraint
+from constraints.difference import DifferenceConstraint, DifferenceSymbol
 from constraints.gemini import GeminiSymbol, GeminiConstraint
 from constraints.loopy import LoopyConstraint
 from constraints.region import PrecisionConstraint, MinimumConstraint, MaximumConstraint
@@ -48,4 +49,6 @@ __all__ = [
 	'GeminiSymbol',
 	'DeltaConstraint',
 	'DeltaSymbol',
+	'DifferenceConstraint',
+	'DifferenceSymbol',
 ]
