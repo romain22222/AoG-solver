@@ -1,5 +1,6 @@
 from constraints.base import Constraint, Symbol, GridSymbol, EdgeSymbol, VertexSymbol
 from constraints.bricky import BrickyConstraint
+from constraints.compass import CompassConstraint, CompassSymbol
 from constraints.delta import DeltaSymbol, DeltaConstraint
 from constraints.difference import DifferenceConstraint, DifferenceSymbol
 from constraints.gemini import GeminiSymbol, GeminiConstraint
@@ -54,4 +55,6 @@ __all__ = [
 	'DifferenceSymbol',
 	'InequalityConstraint',
 	'InequalitySymbol',
+	'CompassConstraint',
+	'CompassSymbol',
 ]
