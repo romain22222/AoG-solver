@@ -81,49 +81,113 @@ def get_region_shape(state, region_id: Position) -> Tuple[Tuple[int, int], ...]:
 	return get_region_shape_hard(get_region_cells(state, state.uf.find(region_id)))
 
 
+def compareShapes(shape_1, shape_2):
+	c1, c2 = (0, 0), (0, 0)
+	for c1, c2 in zip(shape_1, shape_2):
+		if c1 != c2:
+			break
+	return c1 > c2
+
+
+def getTransforms(shape):
+	normalized = shape
+	transforms = [shape]
+
+	rotated = sorted(list((y, -x) for x, y in normalized))
+	min_rx = min(x for x, y in rotated)
+	min_ry = min(y for x, y in rotated)
+	transforms.append(sorted(list((x - min_rx, y - min_ry) for x, y in rotated)))
+
+	rotated = sorted(list((-x, -y) for x, y in normalized))
+	min_rx = min(x for x, y in rotated)
+	min_ry = min(y for x, y in rotated)
+	transforms.append(sorted(list((x - min_rx, y - min_ry) for x, y in rotated)))
+
+	rotated = sorted(list((-y, x) for x, y in normalized))
+	min_rx = min(x for x, y in rotated)
+	min_ry = min(y for x, y in rotated)
+	transforms.append(sorted(list((x - min_rx, y - min_ry) for x, y in rotated)))
+
+	reflected = sorted(list((-x, y) for x, y in normalized))
+	min_rx = min(x for x, y in reflected)
+	min_ry = min(y for x, y in reflected)
+	transforms.append(sorted(list((x - min_rx, y - min_ry) for x, y in reflected)))
+
+	reflected = sorted(list((x, -y) for x, y in normalized))
+	min_rx = min(x for x, y in reflected)
+	min_ry = min(y for x, y in reflected)
+	transforms.append(sorted(list((x - min_rx, y - min_ry) for x, y in reflected)))
+
+	reflected = sorted(list((y, x) for x, y in normalized))
+	min_rx = min(x for x, y in reflected)
+	min_ry = min(y for x, y in reflected)
+	transforms.append(sorted(list((x - min_rx, y - min_ry) for x, y in reflected)))
+
+	reflected = sorted(list((-y, -x) for x, y in normalized))
+	min_rx = min(x for x, y in reflected)
+	min_ry = min(y for x, y in reflected)
+	transforms.append(sorted(list((x - min_rx, y - min_ry) for x, y in reflected)))
+
+	return transforms
+
+
 def get_region_shape_hard(region_cells: Set[Position]) -> Tuple[Tuple[int, int], ...]:
 	min_x = min(x for x, y in region_cells)
 	min_y = min(y for x, y in region_cells)
 
-	normalized = frozenset((x - min_x, y - min_y) for x, y in region_cells)
-	all_variants = [normalized]
+	normalized = sorted(list((x - min_x, y - min_y) for x, y in region_cells))
+	best = normalized
 
-	rotated = frozenset((y, -x) for x, y in normalized)
+	rotated = sorted(list((y, -x) for x, y in normalized))
 	min_rx = min(x for x, y in rotated)
 	min_ry = min(y for x, y in rotated)
-	all_variants.append(frozenset((x - min_rx, y - min_ry) for x, y in rotated))
+	current = sorted(list((x - min_rx, y - min_ry) for x, y in rotated))
+	if compareShapes(best, current):
+		best = current
 
-	rotated = frozenset((-x, -y) for x, y in normalized)
+	rotated = sorted(list((-x, -y) for x, y in normalized))
 	min_rx = min(x for x, y in rotated)
 	min_ry = min(y for x, y in rotated)
-	all_variants.append(frozenset((x - min_rx, y - min_ry) for x, y in rotated))
+	current = sorted(list((x - min_rx, y - min_ry) for x, y in rotated))
+	if compareShapes(best, current):
+		best = current
 
-	rotated = frozenset((-y, x) for x, y in normalized)
+	rotated = sorted(list((-y, x) for x, y in normalized))
 	min_rx = min(x for x, y in rotated)
 	min_ry = min(y for x, y in rotated)
-	all_variants.append(frozenset((x - min_rx, y - min_ry) for x, y in rotated))
+	current = sorted(list((x - min_rx, y - min_ry) for x, y in rotated))
+	if compareShapes(best, current):
+		best = current
 
-	reflected = frozenset((-x, y) for x, y in normalized)
+	reflected = sorted(list((-x, y) for x, y in normalized))
 	min_rx = min(x for x, y in reflected)
 	min_ry = min(y for x, y in reflected)
-	all_variants.append(frozenset((x - min_rx, y - min_ry) for x, y in reflected))
+	current = sorted(list((x - min_rx, y - min_ry) for x, y in reflected))
+	if compareShapes(best, current):
+		best = current
 
-	reflected = frozenset((x, -y) for x, y in normalized)
+	reflected = sorted(list((x, -y) for x, y in normalized))
 	min_rx = min(x for x, y in reflected)
 	min_ry = min(y for x, y in reflected)
-	all_variants.append(frozenset((x - min_rx, y - min_ry) for x, y in reflected))
+	current = sorted(list((x - min_rx, y - min_ry) for x, y in reflected))
+	if compareShapes(best, current):
+		best = current
 
-	reflected = frozenset((y, x) for x, y in normalized)
+	reflected = sorted(list((y, x) for x, y in normalized))
 	min_rx = min(x for x, y in reflected)
 	min_ry = min(y for x, y in reflected)
-	all_variants.append(frozenset((x - min_rx, y - min_ry) for x, y in reflected))
+	current = sorted(list((x - min_rx, y - min_ry) for x, y in reflected))
+	if compareShapes(best, current):
+		best = current
 
-	reflected = frozenset((-y, -x) for x, y in normalized)
+	reflected = sorted(list((-y, -x) for x, y in normalized))
 	min_rx = min(x for x, y in reflected)
 	min_ry = min(y for x, y in reflected)
-	all_variants.append(frozenset((x - min_rx, y - min_ry) for x, y in reflected))
+	current = sorted(list((x - min_rx, y - min_ry) for x, y in reflected))
+	if compareShapes(best, current):
+		best = current
 
-	return tuple(sorted(min(all_variants)))
+	return tuple(best)
 
 
 def is_rectangle(region_cells: Set[Position]) -> bool:

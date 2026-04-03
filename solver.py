@@ -142,8 +142,9 @@ class UnionFind:
 				unique_unjoinable.append(pair)
 		self.unjoinable = unique_unjoinable
 		cpyconra = self.connectables[ra].copy()
+		cpyconra.remove(rb)
 		for v in self.connectables[ra]:
-			if [ra, v] in self.unjoinable or [v, ra] in self.unjoinable or v == rb:
+			if [rb, v] in self.unjoinable or [v, rb] in self.unjoinable:
 				cpyconra.remove(v)
 		toAdd = []
 		for v in self.connectables[rb]:
@@ -165,8 +166,9 @@ class UnionFind:
 		# Normalize pair order for consistent storage
 		if totalOrder(rb, ra):
 			ra, rb = rb, ra
-		if [ra, rb] not in self.unjoinable:
-			self.unjoinable.append([ra, rb])
+		if [ra, rb] in self.unjoinable:
+			return True
+		self.unjoinable.append([ra, rb])
 		if rb in self.connectables[ra]:
 			self.connectables[ra].remove(rb)
 			self.connectables[rb].remove(ra)
@@ -396,6 +398,17 @@ def choose_edge(state: State) -> FullEdge:
 	return state.undecided_edges()[0]
 
 
+def checkConnectables(uf: UnionFind) -> List[tuple[Position, Position]]:
+	wrongs = []
+	for a in uf.parentList:
+		for b in uf.getAdjacent(a):
+			aInB = a in uf.connectables[b]
+			bInA = b in uf.connectables[a]
+			if aInB != bInA:
+				wrongs.append((a, b))
+	return wrongs
+
+
 class Solver:
 	def __init__(self, grid: Grid, constraints: list[Constraint]):
 		self.grid = grid
@@ -419,17 +432,24 @@ class Solver:
 
 	def solve(self, state: State) -> None:
 		stack = [(state, None, None)]  # Stack to simulate recursion, storing (state, edge, value)
+		wrongStates = []
 		while stack:
 			current_state, edge, val = stack.pop()
+			if current_state in wrongStates:
+				continue
+
+			tmpCurrentState = current_state.clone()
 
 			if edge is not None and val is not EdgeState.UNKNOWN:
 				if not current_state.set_edge(edge, val):
+					wrongStates.append(tmpCurrentState)
 					continue
 
 			if len(self.solutions) >= self.max_solutions:
 				return
 
 			if not self.propagate_all(current_state):
+				wrongStates.append(tmpCurrentState)
 				continue
 
 			if not current_state.undecided_edges():

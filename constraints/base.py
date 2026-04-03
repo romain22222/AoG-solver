@@ -7,6 +7,12 @@ class Constraint:
 	def propagate(self, state) -> bool:
 		return True
 
+	def set_vertices(self, vertices):
+		pass
+
+	def set_symbols(self, symbols):
+		pass
+
 
 class SymbolConstraint(Constraint):
 	def __init__(self, symbols: list[Symbol]):
