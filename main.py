@@ -81,6 +81,8 @@ if __name__ == "__main__":
 	solver = Solver(puzzle["grid"], puzzle["constraints"])
 	solver.solve(initialState)
 
+	print(f"First solution: {solver.firstS}")
+	print(f"Total: {solver.finalT}")
 	print("Number of solutions found:", len(solver.solutions))
 	for solutionNumber, solution in enumerate(solver.solutions):
 		print(f"Solution {solutionNumber + 1}:")

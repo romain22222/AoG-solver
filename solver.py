@@ -1,3 +1,4 @@
+import time
 from typing import Set, List
 
 from constraints import Constraint
@@ -426,6 +427,8 @@ def checkConnectables(uf: UnionFind) -> List[tuple[Position, Position]]:
 
 class Solver:
 	def __init__(self, grid: Grid, constraints: list[Constraint]):
+		self.finalT = None
+		self.firstS = None
 		self.grid = grid
 		self.constraints = constraints
 		self.solutions = []
@@ -444,6 +447,8 @@ class Solver:
 		return True
 
 	def solve(self, state: State) -> None:
+		print("start")
+		t = time.process_time()
 		stack = [(state, None, None)]  # Stack to simulate recursion, storing (state, edge, value)
 		wrongStates = []
 		while stack:
@@ -468,9 +473,12 @@ class Solver:
 					if any([all([s.edges[e] == v for e, v in current_state.edges.items()]) for s in self.solutions]):
 						continue
 					self.solutions.append(current_state)
+					if len(self.solutions) == 1:
+						self.firstS = time.process_time() - t
 				continue
 			# current_state.show(self.constraints, self.grid.holes)
-			print(len(stack), len(current_state.undecided))
+			# print(len(stack), len(current_state.undecided))
 			next_edge = choose_edge(self, current_state)
 			stack.append((current_state.clone(), next_edge, EdgeState.PRESENT))
 			stack.append((current_state.clone(), next_edge, EdgeState.ABSENT))
+		self.finalT = time.process_time() - t
