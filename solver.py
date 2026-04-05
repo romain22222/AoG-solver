@@ -462,7 +462,8 @@ class Solver:
 						continue
 					self.solutions.append(current_state)
 				continue
-			current_state.show(self.constraints, self.grid.holes)
+			# current_state.show(self.constraints, self.grid.holes)
+			print(len(stack))
 			next_edge = choose_edge(self, current_state)
 			stack.append((current_state.clone(), next_edge, EdgeState.PRESENT))
 			stack.append((current_state.clone(), next_edge, EdgeState.ABSENT))
