@@ -65,7 +65,6 @@ class CompassSymbol(GridSymbol):
 
 	def propagate(self, state) -> bool:
 		region_id = state.uf.find(self.position)
-		nbConnectables = len(state.uf.connectables[region_id])
 		cells = get_region_cells(state, region_id)
 		x, y = self.position
 		for comparisonCheck, sameCoordsCheck, amount, direction in zip(

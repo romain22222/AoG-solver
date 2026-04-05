@@ -238,10 +238,15 @@ class State:
 		self.cache_cell_vertex = {}
 		self.calledSetEdge = False
 
+		self.undecided = set()
+
 		for c in grid.cells:
 			for d in DIRS:
 				key = canonical_edge(grid, c, d)
-				self.edges[key] = EdgeState.UNKNOWN if isinstance(key[1], tuple) else EdgeState.PRESENT
+				val = EdgeState.UNKNOWN if isinstance(key[1], tuple) else EdgeState.PRESENT
+				self.edges[key] = val
+				if val == EdgeState.UNKNOWN:
+					self.undecided.add(key)
 		self.uf = UnionFind(self.grid.cells)
 
 	def set(self, other: 'State') -> None:
@@ -254,35 +259,38 @@ class State:
 	def clone(self) -> 'State':
 		s = State(self.grid)
 		s.edges = self.edges.copy()
+		s.undecided = self.undecided.copy()
 		s.cache_cell_edges = self.cache_cell_edges
 		s.cache_cell_vertex = self.cache_cell_vertex
 		s.uf = self.uf.clone()
-		s.calledSetEdge = False
 		return s
 
 	def set_edge(self, edge: FullEdge, val: EdgeState, recursiveSplit=True) -> bool:
-		if self.edges[edge] is not EdgeState.UNKNOWN:
-			return self.edges[edge] == val
+		current = self.edges[edge]
+		if current is not EdgeState.UNKNOWN:
+			return current == val
 
 		# Forbid walls in same region
 		a, b = edge_cells(edge)
 		ra, rb = self.uf.find(a) if a else None, self.uf.find(b) if b else None
-		if val == EdgeState.PRESENT and a and b and ra == rb:
-			return False
-		if val == EdgeState.ABSENT and a and b and ra != rb and (
-				[ra, rb] in self.uf.unjoinable or [rb, ra] in self.uf.unjoinable):
-			return False
+		if a and b:
+			if val == EdgeState.PRESENT and ra == rb:
+				return False
+
+			if val == EdgeState.ABSENT and ra != rb and (
+					[ra, rb] in self.uf.unjoinable or [rb, ra] in self.uf.unjoinable):
+				return False
 
 		self.calledSetEdge = True
 		self.edges[edge] = val
-		if val == EdgeState.ABSENT and a and b:
-			if recursiveSplit:
-				if not joinRegions(self, a, b):
-					return False
-		elif val == EdgeState.PRESENT and a and b:
-			if recursiveSplit:
-				if not separateRegions(self, a, b):
-					return False
+
+		self.undecided.discard(edge)
+
+		if recursiveSplit and a and b:
+			if val == EdgeState.ABSENT and not joinRegions(self, a, b):
+				return False
+			elif val == EdgeState.PRESENT and not separateRegions(self, a, b):
+				return False
 		return True
 
 	def cell_edges(self, cell: Position) -> list[Edge]:
@@ -425,15 +433,14 @@ class Solver:
 
 	def propagate_all(self, state: State) -> bool:
 		shouldRepeat = True
-		s = state.clone()
-		while shouldRepeat:
-			s.calledSetEdge = False
-			for c in self.constraints:
-				if not c.propagate(s):
-					return False
-			shouldRepeat = s.calledSetEdge
 
-		state.set(s)
+		while shouldRepeat:
+			state.calledSetEdge = False
+			for c in self.constraints:
+				if not c.propagate(state):
+					return False
+			shouldRepeat = state.calledSetEdge
+
 		return True
 
 	def solve(self, state: State) -> None:
@@ -463,7 +470,7 @@ class Solver:
 					self.solutions.append(current_state)
 				continue
 			# current_state.show(self.constraints, self.grid.holes)
-			print(len(stack))
+			print(len(stack), len(current_state.undecided))
 			next_edge = choose_edge(self, current_state)
 			stack.append((current_state.clone(), next_edge, EdgeState.PRESENT))
 			stack.append((current_state.clone(), next_edge, EdgeState.ABSENT))
