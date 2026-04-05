@@ -347,6 +347,9 @@ class State:
 		print(t)
 
 	def is_valid_partition(self) -> bool:
+		for c in self.grid.constraints:
+			if not c.check(self):
+				return False
 		for edge, val in self.edges.items():
 			a, b = edge_cells(edge)
 
@@ -394,8 +397,12 @@ def get_vertices(grid: Grid) -> dict[Position, set[Edge]]:
 # SOLVER
 # =========================
 
-def choose_edge(state: State) -> FullEdge:
+def choose_edge(solver: Solver, state: State) -> FullEdge:
 	return state.undecided_edges()[0]
+	# undecided = state.undecided_edges()
+	# if not undecided:
+	# 	return None
+	# return max(undecided, key=lambda e: solver.failed_edges.get(e, 0))
 
 
 def checkConnectables(uf: UnionFind) -> List[tuple[Position, Position]]:
@@ -427,7 +434,6 @@ class Solver:
 			shouldRepeat = s.calledSetEdge
 
 		state.set(s)
-		state.show(state.grid.constraints, state.grid.holes)
 		return True
 
 	def solve(self, state: State) -> None:
@@ -445,9 +451,6 @@ class Solver:
 					wrongStates.append(tmpCurrentState)
 					continue
 
-			if len(self.solutions) >= self.max_solutions:
-				return
-
 			if not self.propagate_all(current_state):
 				wrongStates.append(tmpCurrentState)
 				continue
@@ -459,7 +462,7 @@ class Solver:
 						continue
 					self.solutions.append(current_state)
 				continue
-
-			next_edge = choose_edge(current_state)
+			current_state.show(self.constraints, self.grid.holes)
+			next_edge = choose_edge(self, current_state)
 			stack.append((current_state.clone(), next_edge, EdgeState.PRESENT))
 			stack.append((current_state.clone(), next_edge, EdgeState.ABSENT))

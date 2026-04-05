@@ -108,13 +108,14 @@ def translatePuzzle(jsonPuzzle: JsonPuzzle) -> Puzzle:
 	shapeList = []
 	forcedEdges = []
 
-	for shape in jsonPuzzle["shapes"].values():
-		shapeText = shape.split('/')
-		shapeList.append([])
-		for y in range(len(shapeText)):
-			for x in range(len(shapeText[y])):
-				if shapeText[y][x] != " ":
-					shapeList[len(shapeList) - 1].append((x, y))
+	if jsonPuzzle["shapes"]:
+		for shape in jsonPuzzle["shapes"].values():
+			shapeText = shape.split('/')
+			shapeList.append([])
+			for y in range(len(shapeText)):
+				for x in range(len(shapeText[y])):
+					if shapeText[y][x] != " ":
+						shapeList[len(shapeList) - 1].append((x, y))
 
 	for i in range(len(shapeList)):
 		shapeList[i] = get_region_shape_hard(set(shapeList[i]))
@@ -187,7 +188,7 @@ def translatePuzzle(jsonPuzzle: JsonPuzzle) -> Puzzle:
 		for x in range(jsonPuzzle['cols'] + 1):
 			vertexText = puzzleLines[2 * y][3 * x]
 			if vertexText not in [" ", "+"]:
-				vertexSymbols.append(WatchtowerSymbol((x, y), int(vertexText)))
+				vertexSymbols.append(WatchtowerSymbol((x, y), vertexText))
 
 	# edge symbols (N/S)
 	for y in range(jsonPuzzle['rows'] - 1):

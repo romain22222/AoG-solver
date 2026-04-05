@@ -90,45 +90,46 @@ def compareShapes(shape_1, shape_2):
 
 
 def getTransforms(shape):
+	transforms = []
 	normalized = shape
-	transforms = [shape]
+	transforms.append(tuple(normalized))
 
-	rotated = sorted(list((y, -x) for x, y in normalized))
+	rotated = sorted((y, -x) for x, y in normalized)
 	min_rx = min(x for x, y in rotated)
 	min_ry = min(y for x, y in rotated)
-	transforms.append(sorted(list((x - min_rx, y - min_ry) for x, y in rotated)))
+	transforms.append(tuple(sorted((x - min_rx, y - min_ry) for x, y in rotated)))
 
-	rotated = sorted(list((-x, -y) for x, y in normalized))
+	rotated = sorted((-x, -y) for x, y in normalized)
 	min_rx = min(x for x, y in rotated)
 	min_ry = min(y for x, y in rotated)
-	transforms.append(sorted(list((x - min_rx, y - min_ry) for x, y in rotated)))
+	transforms.append(tuple(sorted((x - min_rx, y - min_ry) for x, y in rotated)))
 
-	rotated = sorted(list((-y, x) for x, y in normalized))
+	rotated = sorted((-y, x) for x, y in normalized)
 	min_rx = min(x for x, y in rotated)
 	min_ry = min(y for x, y in rotated)
-	transforms.append(sorted(list((x - min_rx, y - min_ry) for x, y in rotated)))
+	transforms.append(tuple(sorted((x - min_rx, y - min_ry) for x, y in rotated)))
 
-	reflected = sorted(list((-x, y) for x, y in normalized))
+	reflected = sorted((-x, y) for x, y in normalized)
 	min_rx = min(x for x, y in reflected)
 	min_ry = min(y for x, y in reflected)
-	transforms.append(sorted(list((x - min_rx, y - min_ry) for x, y in reflected)))
+	transforms.append(tuple(sorted((x - min_rx, y - min_ry) for x, y in reflected)))
 
-	reflected = sorted(list((x, -y) for x, y in normalized))
+	reflected = sorted((x, -y) for x, y in normalized)
 	min_rx = min(x for x, y in reflected)
 	min_ry = min(y for x, y in reflected)
-	transforms.append(sorted(list((x - min_rx, y - min_ry) for x, y in reflected)))
+	transforms.append(tuple(sorted((x - min_rx, y - min_ry) for x, y in reflected)))
 
-	reflected = sorted(list((y, x) for x, y in normalized))
+	reflected = sorted((y, x) for x, y in normalized)
 	min_rx = min(x for x, y in reflected)
 	min_ry = min(y for x, y in reflected)
-	transforms.append(sorted(list((x - min_rx, y - min_ry) for x, y in reflected)))
+	transforms.append(tuple(sorted((x - min_rx, y - min_ry) for x, y in reflected)))
 
-	reflected = sorted(list((-y, -x) for x, y in normalized))
+	reflected = sorted((-y, -x) for x, y in normalized)
 	min_rx = min(x for x, y in reflected)
 	min_ry = min(y for x, y in reflected)
-	transforms.append(sorted(list((x - min_rx, y - min_ry) for x, y in reflected)))
+	transforms.append(tuple(sorted((x - min_rx, y - min_ry) for x, y in reflected)))
 
-	return transforms
+	return set(transforms)
 
 
 def get_region_shape_hard(region_cells: Set[Position]) -> Tuple[Tuple[int, int], ...]:

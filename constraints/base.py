@@ -13,15 +13,8 @@ class Constraint:
 	def set_symbols(self, symbols):
 		pass
 
-
-class SymbolConstraint(Constraint):
-	def __init__(self, symbols: list[Symbol]):
-		super().__init__()
-		self.symbols = symbols
-
-	def show(self, state, evenLines, oddLines):
-		for symbol in self.symbols:
-			symbol.show(state, evenLines, oddLines)
+	def check(self, state) -> bool:
+		return self.propagate(state)
 
 
 class Symbol:
@@ -33,6 +26,16 @@ class Symbol:
 
 	def show(self, state, evenLines, oddLines):
 		pass
+
+
+class SymbolConstraint(Constraint):
+	def __init__(self, symbols: list[Symbol]):
+		super().__init__()
+		self.symbols = symbols
+
+	def show(self, state, evenLines, oddLines):
+		for symbol in self.symbols:
+			symbol.show(state, evenLines, oddLines)
 
 
 class GridSymbol(Symbol):

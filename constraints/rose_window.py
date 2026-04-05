@@ -36,41 +36,41 @@ class RoseWindowConstraint(SymbolConstraint):
 		self.presentShapes = {}
 		self.symbolsPositions = {}
 		for symbol in symbols:
-			if not self.presentShapes[symbol.shape]:
+			if symbol.shape not in self.presentShapes:
 				self.presentShapes[symbol.shape] = 0
 				self.symbolsPositions[symbol.shape] = []
 			self.presentShapes[symbol.shape] += 1
 			self.symbolsPositions[symbol.shape].append(symbol.position)
-		self.cantWork = len(set(self.presentShapes.values())) != 1
+		self.canWork = len(set(self.presentShapes.values())) == 1
 		self.nbRegions = self.presentShapes[symbols[0].shape]
 		self.presentShapes = set(self.presentShapes.keys())
+		self.firstPropagate = True
 
 	def propagate(self, state) -> bool:
-		if not self.cantWork:
+		if not self.canWork:
 			return False
 
-		retryAllSymbols = False
-		for sPositions in self.symbolsPositions:
-			regions = set([state.uf.find(sPos) for sPos in self.symbolsPositions[sPositions]])
-			if len(regions) != self.nbRegions:
-				return False
-			for r1 in regions:
-				for r2 in regions:
-					if r1 in state.uf.connectables[r2]:
-						if not separateRegions(state, r1, r2):
+		if self.firstPropagate:
+			for sKind in self.presentShapes:
+				for i in range(self.nbRegions):
+					for j in range(self.nbRegions):
+						if not separateRegions(state, state.uf.find(self.symbolsPositions[sKind][i]), state.uf.find(self.symbolsPositions[sKind][j])):
 							return False
-						retryAllSymbols = True
+			self.firstPropagate = False
 
+		retryAllSymbols = False
+		for sKind in self.presentShapes:
+			self.symbolsPositions[sKind] = [state.uf.find(p) for p in self.symbolsPositions[sKind]]
 			for r in state.uf.parentList:
-				if r not in state.uf.parentList:
-					continue
-				if r not in sPositions:
+				r = state.uf.find(r)
+				if r not in self.symbolsPositions[sKind]:
 					lastConnectables = len(state.uf.connectables[r])
 					if lastConnectables == 0:
 						return False
 					elif lastConnectables == 1:
 						if not joinRegions(state, r, next(iter(state.uf.connectables[r]))):
 							return False
+						self.symbolsPositions[sKind] = [state.uf.find(p) for p in self.symbolsPositions[sKind]]
 						retryAllSymbols = True
 		if retryAllSymbols:
 			return self.propagate(state)

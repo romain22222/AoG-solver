@@ -5,9 +5,9 @@ from solver import State
 
 
 class WatchtowerSymbol(VertexSymbol):
-	def __init__(self, position: Position, count: int) -> None:
+	def __init__(self, position: Position, count: str) -> None:
 		super().__init__(position)
-		self.count = count
+		self.count = int(count)
 		self.text = count
 
 	def propagate(self, state) -> bool:
