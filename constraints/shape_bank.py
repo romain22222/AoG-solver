@@ -79,8 +79,7 @@ class ShapeBankConstraint(Constraint):
 
     def propagate(self, state) -> bool:
         for ra in state.uf.parentList:
-            if ra not in state.uf.parentList:
-                continue
+            ra = state.uf.find(ra)
             if state.uf.size[ra] > max(self.allowed_sizes):
                 return False
             shape = get_region_shape(state, ra)

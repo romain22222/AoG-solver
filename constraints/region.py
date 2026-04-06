@@ -7,8 +7,7 @@ class PrecisionConstraint(Constraint):
 		self.size = size
 
 	def propagate(self, state) -> bool:
-		uf = state.uf
-		for p in uf.parentList:
+		for p in state.uf.parentList:
 			minR, maxR = regionSizeHelper(state, p)
 			if minR > self.size or maxR < self.size:
 				return False
@@ -23,8 +22,7 @@ class MinimumConstraint(Constraint):
 		self.size = size
 
 	def propagate(self, state) -> bool:
-		uf = state.uf
-		for p in uf.parentList:
+		for p in state.uf.parentList:
 			minR, maxR = regionSizeHelper(state, p)
 			if maxR < self.size:
 				return False
@@ -39,9 +37,8 @@ class MaximumConstraint(Constraint):
 		self.size = size
 
 	def propagate(self, state) -> bool:
-		uf = state.uf
-		for p in uf.parentList:
-			minR = uf.size[uf.find(p)]
+		for p in state.uf.parentList:
+			minR = state.uf.size[state.uf.find(p)]
 			if minR > self.size:
 				return False
 			if minR == self.size:
