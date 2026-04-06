@@ -425,6 +425,16 @@ def checkConnectables(uf: UnionFind) -> List[tuple[Position, Position]]:
 	return wrongs
 
 
+def choose_regions(self, current_state):
+	maxLen = 0
+	chosenRegions = []
+	for r in current_state.uf.parentList:
+		if current_state.uf.size[r] > maxLen and len(current_state.uf.connectables[r]) > 0:
+			maxLen = current_state.uf.size[r]
+			chosenRegions = [r, next(iter(current_state.uf.connectables[r]))]
+	return chosenRegions
+
+
 class Solver:
 	def __init__(self, grid: Grid, constraints: list[Constraint]):
 		self.finalT = None
@@ -447,6 +457,7 @@ class Solver:
 		return True
 
 	def solve(self, state: State) -> None:
+		return self.solveFuse(state)
 		print("start")
 		t = time.process_time()
 		stack = [(state, None, None)]  # Stack to simulate recursion, storing (state, edge, value)
@@ -483,4 +494,44 @@ class Solver:
 			next_edge = choose_edge(self, current_state)
 			stack.append((current_state.clone(), next_edge, EdgeState.PRESENT))
 			stack.append((current_state.clone(), next_edge, EdgeState.ABSENT))
+		self.finalT = time.process_time() - t
+
+	def solveFuse(self, state: State) -> None:
+		print("start")
+		t = time.process_time()
+		stack = [(state, None, None, "none")]  # Stack to simulate recursion, storing (state, ra, rb, action)
+		seen_states = set()
+		while stack:
+			current_state, ra, rb, action = stack.pop()
+
+			if ra is not None:
+				action = separateRegions if action == "separate" else joinRegions
+				if not action(current_state, ra, rb):
+					continue
+			state_hash = hash(tuple(sorted(current_state.edges.values())))
+			if state_hash in seen_states:
+				print("Already seen state, skipping")
+				continue
+			seen_states.add(state_hash)
+
+			if not self.propagate_all(current_state):
+				continue
+
+			if not current_state.undecided_edges():
+				if current_state.is_valid_partition():
+					# Check if solution already is in self.solutions
+					if any([all([s.edges[e] == v for e, v in current_state.edges.items()]) for s in
+							self.solutions]):
+						continue
+					self.solutions.append(current_state)
+					if len(self.solutions) == 1:
+						self.firstS = time.process_time() - t
+						print("Solution found")
+						current_state.show(self.constraints, self.grid.holes)
+				continue
+			# current_state.show(self.constraints, self.grid.holes)
+			print(len(stack), len(current_state.undecided))
+			next_regions = choose_regions(self, current_state)
+			stack.append((current_state.clone(), next_regions[0], next_regions[1], "separate"))
+			stack.append((current_state.clone(), next_regions[0], next_regions[1], "join"))
 		self.finalT = time.process_time() - t

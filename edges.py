@@ -11,4 +11,7 @@ Edge = FullEdge | PartEdge
 class EdgeState(Enum):
 	ABSENT = 0
 	PRESENT = 1
-	UNKNOWN = None
+	UNKNOWN = 2
+
+	def __lt__(self, other):
+		return self.value < other.value
