@@ -475,6 +475,8 @@ class Solver:
 					self.solutions.append(current_state)
 					if len(self.solutions) == 1:
 						self.firstS = time.process_time() - t
+						print("Solution found")
+						current_state.show(self.constraints, self.grid.holes)
 				continue
 			# current_state.show(self.constraints, self.grid.holes)
 			# print(len(stack), len(current_state.undecided))
