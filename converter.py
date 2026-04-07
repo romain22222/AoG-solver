@@ -14,6 +14,7 @@ class Puzzle(TypedDict):
 	holes: set[Position]
 	constraints: List[Constraint]
 	forcedEdges: List[FullEdge]
+	solution: tuple[List[FullEdge], List[FullEdge]]
 
 
 class JsonPuzzle(TypedDict):
@@ -275,11 +276,29 @@ def translatePuzzle(jsonPuzzle: JsonPuzzle) -> Puzzle:
 	if jsonPuzzle["shapeBank"]:
 		constraints.append(ShapeBankConstraint([shapeList[int(i) - 1] for i in jsonPuzzle["shapeBank"]]))
 
+	solutionPresent = []
+	solutionAbsent = []
+	for i, line in enumerate(jsonPuzzle["solution"].split("/")):
+		if i % 2 == 0:
+			for j in range(len(line)//3):
+				if line[3*j+1] == "#":
+					toAddIn = solutionPresent.append
+				else:
+					toAddIn = solutionAbsent.append
+				toAddIn((((j, i//2-1), Direction.S), ((j, i//2), Direction.N)))
+		else:
+			for j in range(len(line)//3+1):
+				if line[3 * j] == "#":
+					toAddIn = solutionPresent.append
+				else:
+					toAddIn = solutionAbsent.append
+				toAddIn((((j-1, i//2), Direction.E), ((j, i//2), Direction.W)))
 	return {
 		"grid": grid,
 		"holes": holes,
 		"constraints": constraints,
 		"forcedEdges": forcedEdges,
+		"solution": [solutionPresent, solutionAbsent]
 	}
 
 

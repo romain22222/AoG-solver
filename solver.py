@@ -23,11 +23,13 @@ class Grid:
 		]
 		self.holes = set()
 		self.constraints = []
+		self.neighbors = {}
 
 	def setHoles(self, holes: Set[Position]) -> None:
 		for h in holes:
 			self.cells.remove(h)
 		self.holes = holes
+		self.neighbors = {cell: tuple(self.neighbor(cell, d) for d in DIRS) for cell in self.cells}
 
 	def setConstraints(self, constraints: List[PartEdge]) -> None:
 		self.constraints = constraints
@@ -117,7 +119,6 @@ class UnionFind:
 			ra, rb = rb, ra
 
 		self.parent[rb] = ra
-		# Update parent where parent is rb to ra
 		for p in self.parent.keys():
 			if self.parent[p] == rb:
 				self.parent[p] = ra
@@ -129,19 +130,8 @@ class UnionFind:
 				self.unjoinable[i][0] = ra
 			if self.unjoinable[i][1] == rb:
 				self.unjoinable[i][1] = ra
-			# Re-normalize the pair order after replacement
 			if totalOrder(self.unjoinable[i][1], self.unjoinable[i][0]):
 				self.unjoinable[i][0], self.unjoinable[i][1] = self.unjoinable[i][1], self.unjoinable[i][0]
-
-		# Remove duplicates in unjoinable after normalization
-		seen = set()
-		unique_unjoinable = []
-		for pair in self.unjoinable:
-			pair_tuple = (pair[0], pair[1])
-			if pair_tuple not in seen:
-				seen.add(pair_tuple)
-				unique_unjoinable.append(pair)
-		self.unjoinable = unique_unjoinable
 		cpyconra = self.connectables[ra].copy()
 		cpyconra.remove(rb)
 		for v in self.connectables[ra]:
@@ -186,18 +176,9 @@ class UnionFind:
 			return False
 		return True
 
-	def getAdjacent(self, a) -> Set:
-		ra = self.find(a)
-		unjoinable_pairs = [r for r in self.unjoinable if ra in r]
-		# Normalize representatives after unions and filter out self-references
-		adjacent_set = set()
-		for r in unjoinable_pairs:
-			neighbor = r[0] if r[1] == ra else r[1]
-			neighbor = self.find(neighbor)
-			if neighbor != ra:  # Don't include self-references
-				adjacent_set.add(neighbor)
-		adjacent_set.update(self.connectables[ra])
-		return adjacent_set
+	def getAdjacent(self, a, grid: Grid) -> Set:
+		insides = self.getInsides(a)
+		return {self.find(c) for q in insides for c in grid.neighbors[q] if c is not None}.difference(insides)
 
 	def getInsides(self, a) -> Set:
 		ra = self.find(a)
@@ -318,14 +299,10 @@ class State:
 	def undecided_edges(self) -> list[FullEdge]:
 		return [e for e, v in self.edges.items() if v is EdgeState.UNKNOWN]
 
-	def show(self, constraints=None, holes=None) -> None:
-		if constraints is None:
-			constraints = []
-		if holes is None:
-			holes = set()
+	def show(self) -> None:
 		evenLines = ["+ " * self.grid.width + "+" for _ in range(self.grid.height + 1)]
 		oddLines = ["  " * self.grid.width + " " for _ in range(self.grid.height)]
-		for h in holes:
+		for h in self.grid.holes:
 			oddLines[h[1]] = oddLines[h[1]][:2 * h[0] + 1] + holeText + oddLines[h[1]][2 * h[0] + 2:]
 		# For each cell, remove corresponding walls
 		for edge, state in self.edges.items():
@@ -334,7 +311,7 @@ class State:
 			# if edge is PartEdge, take x,y from edge[0] and d from edge[1]
 			# else take x,y from edge[0][0] and d from edge[0][1]
 			((x, y), d) = e[0]
-			if self.edges[edge] != EdgeState.ABSENT:
+			if state != EdgeState.ABSENT:
 				if d == Direction.N:
 					evenLines[y] = evenLines[y][:2 * x + 1] + replaceEdge + evenLines[y][2 * x + 2:]
 				elif d == Direction.S:
@@ -344,7 +321,7 @@ class State:
 				elif d == Direction.W:
 					oddLines[y] = oddLines[y][:2 * x] + replaceEdge + oddLines[y][2 * x + 1:]
 
-		for c in constraints:
+		for c in self.grid.constraints:
 			hasattr(c, "show") and c.show(self, evenLines, oddLines)
 		# Display result
 		t = ""
@@ -414,25 +391,53 @@ def choose_edge(solver: Solver, state: State) -> FullEdge:
 	# return max(undecided, key=lambda e: solver.failed_edges.get(e, 0))
 
 
-def checkConnectables(uf: UnionFind) -> List[tuple[Position, Position]]:
+def checkConnectables(state: State) -> List[tuple[Position, Position]]:
 	wrongs = []
-	for a in uf.parentList:
-		for b in uf.getAdjacent(a):
-			aInB = a in uf.connectables[b]
-			bInA = b in uf.connectables[a]
+	for a in state.uf.parentList:
+		for b in state.uf.getAdjacent(a, state.grid):
+			aInB = a in state.uf.connectables[b]
+			bInA = b in state.uf.connectables[a]
 			if aInB != bInA:
 				wrongs.append((a, b))
 	return wrongs
 
 
 def choose_regions(self, current_state):
-	maxLen = 0
-	chosenRegions = []
+	best_pair = []
+	maxMin = 0
 	for r in current_state.uf.parentList:
-		if current_state.uf.size[r] > maxLen and len(current_state.uf.connectables[r]) > 0:
-			maxLen = current_state.uf.size[r]
-			chosenRegions = [r, next(iter(current_state.uf.connectables[r]))]
-	return chosenRegions
+		for rb in current_state.uf.connectables[r]:
+			minSize = min(current_state.uf.size[r], current_state.uf.size[rb])
+			if minSize > maxMin:
+				maxMin = minSize
+				best_pair = [r, rb]
+	return best_pair
+
+
+def cleanupRegions(state: State):
+	for r1, r2 in state.uf.unjoinable:
+		if not separateRegions(state, r1, r2):
+			return False
+	return True
+
+
+def compareSolution(tested, solution):
+	for e in tested.edges:
+		if isinstance(e[1], tuple):
+			if tested.edges[e] != EdgeState.UNKNOWN:
+				if solution.edges[e] != tested.edges[e]:
+					return False
+	for u in tested.uf.unjoinable:
+		if solution.uf.find(u[0]) == solution.uf.find(u[1]):
+			return False
+	return True
+
+
+def checkOrDie(tested, solution, matches):
+	if matches:
+		if compareSolution(tested, solution):
+			print("discarding valid path")
+			exit()
 
 
 class Solver:
@@ -444,20 +449,24 @@ class Solver:
 		self.solutions = []
 		self.max_solutions = 2
 
-	def propagate_all(self, state: State) -> bool:
+	def propagate_all(self, state: State, solutionState: State, matchesSolutionState: bool) -> bool:
 		shouldRepeat = True
 
 		while shouldRepeat:
 			state.calledSetEdge = False
 			for c in self.constraints:
-				if not c.propagate(state):
+				if not c.propagate(state, solutionState, matchesSolutionState):
 					return False
 			shouldRepeat = state.calledSetEdge
 
+		if not cleanupRegions(state):
+			checkOrDie(state, solutionState, matchesSolutionState)
+			return False
+
 		return True
 
-	def solve(self, state: State) -> None:
-		return self.solveFuse(state)
+	def solve(self, state: State, solutionState: State) -> None:
+		return self.solveFuse(state, solutionState)
 		print("start")
 		t = time.process_time()
 		stack = [(state, None, None)]  # Stack to simulate recursion, storing (state, edge, value)
@@ -496,25 +505,32 @@ class Solver:
 			stack.append((current_state.clone(), next_edge, EdgeState.ABSENT))
 		self.finalT = time.process_time() - t
 
-	def solveFuse(self, state: State) -> None:
+	def solveFuse(self, state: State, solutionState) -> None:
 		print("start")
 		t = time.process_time()
-		stack = [(state, None, None, "none")]  # Stack to simulate recursion, storing (state, ra, rb, action)
+		stack = [(state, None, None, "none", solutionState is not None)]  # Stack to simulate recursion, storing (state, ra, rb, action, matchesSolution)
 		seen_states = set()
 		while stack:
-			current_state, ra, rb, action = stack.pop()
+			current_state, ra, rb, action, matchesSolutionState = stack.pop()
 
 			if ra is not None:
 				action = separateRegions if action == "separate" else joinRegions
 				if not action(current_state, ra, rb):
+					checkOrDie(state, solutionState, matchesSolutionState)
 					continue
-			state_hash = hash(tuple(sorted(current_state.edges.values())))
+			if matchesSolutionState:
+				if not compareSolution(current_state, solutionState):
+					matchesSolutionState = False
+			if not matchesSolutionState and solutionState is not None:
+				# Currently discards solutions when they don't match solution to see if the process ever reaches it
+				continue
+			state_hash = hash( (tuple(current_state.edges.values()), frozenset(current_state.uf.parent.items())))
 			if state_hash in seen_states:
-				print("Already seen state, skipping")
+				# print("checked hash")
 				continue
 			seen_states.add(state_hash)
 
-			if not self.propagate_all(current_state):
+			if not self.propagate_all(current_state, solutionState, matchesSolutionState):
 				continue
 
 			if not current_state.undecided_edges():
@@ -527,11 +543,20 @@ class Solver:
 					if len(self.solutions) == 1:
 						self.firstS = time.process_time() - t
 						print("Solution found")
-						current_state.show(self.constraints, self.grid.holes)
+						current_state.show()
+				else:
+					checkOrDie(state, solutionState, matchesSolutionState)
 				continue
 			# current_state.show(self.constraints, self.grid.holes)
-			print(len(stack), len(current_state.undecided))
+			# print(len(stack), len(current_state.undecided))
 			next_regions = choose_regions(self, current_state)
-			stack.append((current_state.clone(), next_regions[0], next_regions[1], "separate"))
-			stack.append((current_state.clone(), next_regions[0], next_regions[1], "join"))
+			# print(f"next regions: {next_regions}")
+			if matchesSolutionState:
+				if not compareSolution(current_state, solutionState):
+					matchesSolutionState = False
+			if not matchesSolutionState and solutionState is not None:
+				# Currently discards solutions when they don't match solution to see if the process ever reaches it
+				continue
+			stack.append((current_state.clone(), next_regions[0], next_regions[1], "separate", matchesSolutionState))
+			stack.append((current_state.clone(), next_regions[0], next_regions[1], "join", matchesSolutionState))
 		self.finalT = time.process_time() - t

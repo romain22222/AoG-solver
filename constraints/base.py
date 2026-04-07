@@ -4,7 +4,7 @@ from position import Position
 
 
 class Constraint:
-	def propagate(self, state) -> bool:
+	def propagate(self, state, solutionState, matchesSolutionState) -> bool:
 		return True
 
 	def set_vertices(self, vertices):
@@ -14,14 +14,14 @@ class Constraint:
 		pass
 
 	def check(self, state) -> bool:
-		return self.propagate(state)
+		return self.propagate(state, None, False)
 
 
 class Symbol:
 	def __init__(self):
 		self.text = " "
 
-	def propagate(self, state) -> bool:
+	def propagate(self, state, solutionState, matchesSolutionState) -> bool:
 		return True
 
 	def show(self, state, evenLines, oddLines):
@@ -53,7 +53,7 @@ class EdgeSymbol(Symbol):
 		super().__init__()
 		self.edge = edge
 
-	def propagate(self, state) -> bool:
+	def propagate(self, state, solutionState, matchesSolutionState) -> bool:
 		if not state.set_edge(self.edge, EdgeState.PRESENT):
 			return False
 		return True

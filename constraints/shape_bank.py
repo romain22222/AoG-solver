@@ -1,5 +1,6 @@
 from constraints import Constraint
 from regionHelper import get_region_shape, joinRegions, shapes_equal, getTransforms, closeRegion
+from solver import checkOrDie
 
 
 def makeRegionMatch(state, ra, targetShape):
@@ -77,28 +78,33 @@ class ShapeBankConstraint(Constraint):
         self.allowed_shapes = allowed_shapes
         self.allowed_sizes = [len(allowed_shape) for allowed_shape in self.allowed_shapes]
 
-    def propagate(self, state) -> bool:
+    def propagate(self, state, solutionState, matchesSolutionState) -> bool:
         for ra in state.uf.parentList:
             ra = state.uf.find(ra)
             if state.uf.size[ra] > max(self.allowed_sizes):
+                checkOrDie(state, solutionState, matchesSolutionState)
                 return False
             shape = get_region_shape(state, ra)
             check = self.checkShapeInShapes(shape)
             if len(state.uf.connectables[ra]) == 0:
                 if not check:
+                    checkOrDie(state, solutionState, matchesSolutionState)
                     return False
             else:
                 possibles = self.extendables(shape)
                 if len(possibles) == 0:
+                    checkOrDie(state, solutionState, matchesSolutionState)
                     return False
                 if len(possibles) == 1:
                     if not makeRegionMatch(state, ra, possibles[0]):
+                        checkOrDie(state, solutionState, matchesSolutionState)
                         return False
                 else:
                     if check:
                         continue
                     if len(state.uf.connectables[ra]) == 1:
                         if not joinRegions(state, ra, next(iter(state.uf.connectables[ra]))):
+                            checkOrDie(state, solutionState, matchesSolutionState)
                             return False
                         return self.propagate(state)
         return True

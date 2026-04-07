@@ -5,6 +5,7 @@ from direction import Direction, OPPOSITE
 from edges import EdgeState
 from position import Position
 from regionHelper import get_region_cells
+from solver import checkOrDie
 
 
 def northCheck(compassP: Position, cellP: Position) -> bool:
@@ -34,8 +35,7 @@ def deltaDir(compassP: Position, cellP: Position, direction: Direction) -> int:
 		return compassP[0] - cellP[0]
 
 
-def generalClosure(compassP: Position, validCells: List[Position], sameCoordsCells: List[Position], state,
-				   direction: Direction) -> bool:
+def generalClosure(compassP: Position, validCells: List[Position], sameCoordsCells: List[Position], state, direction: Direction) -> bool:
 	opposite = OPPOSITE[direction]
 	for cell in validCells:
 		edges = state.cell_edges(cell)
@@ -63,7 +63,7 @@ class CompassSymbol(GridSymbol):
 		self.directionAmounts = [north, east, south, west]
 		self.text = "C"
 
-	def propagate(self, state) -> bool:
+	def propagate(self, state, solutionState, matchesSolutionState) -> bool:
 		region_id = state.uf.find(self.position)
 		cells = get_region_cells(state, region_id)
 		x, y = self.position
@@ -78,15 +78,18 @@ class CompassSymbol(GridSymbol):
 			valid_cells = [c for c in cells if comparisonCheck(self.position, c)]
 			count = len(valid_cells)
 			if count == amount:
-				generalClosure(self.position, valid_cells, [c for c in cells if sameCoordsCheck(c)], state, direction)
+				if not generalClosure(self.position, valid_cells, [c for c in cells if sameCoordsCheck(c)], state, direction):
+					checkOrDie(state, solutionState, matchesSolutionState)
+					return False
 			elif count > amount:
+				checkOrDie(state, solutionState, matchesSolutionState)
 				return False
 		return True
 
 
 class CompassConstraint(SymbolConstraint):
-	def propagate(self, state) -> bool:
+	def propagate(self, state, solutionState, matchesSolutionState) -> bool:
 		for symbol in self.symbols:
-			if not symbol.propagate(state):
+			if not symbol.propagate(state, solutionState, matchesSolutionState):
 				return False
 		return True

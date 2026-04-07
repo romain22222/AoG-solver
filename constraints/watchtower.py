@@ -1,7 +1,7 @@
 from constraints.base import SymbolConstraint, VertexSymbol
 from position import Position
 from regionHelper import separateRegions, joinRegions
-from solver import State
+from solver import checkOrDie
 
 
 class WatchtowerSymbol(VertexSymbol):
@@ -10,7 +10,7 @@ class WatchtowerSymbol(VertexSymbol):
 		self.count = int(count)
 		self.text = count
 
-	def propagate(self, state) -> bool:
+	def propagate(self, state, solutionState, matchesSolutionState) -> bool:
 		# 1- get cells around vertex
 		# 2- Check their parents
 		# 3- If nb(parents) < self.count -> False, if nb(parents) == self.count, disjoint every pair of parents
@@ -19,17 +19,20 @@ class WatchtowerSymbol(VertexSymbol):
 		if self.count == 1:
 			for p in parents[1:]:
 				if not joinRegions(state, parents[0], p):
+					checkOrDie(state, solutionState, matchesSolutionState)
 					return False
 			return True
 		unique_parents = set(parents)
 		current = len(unique_parents)
 		if current < self.count:
+			checkOrDie(state, solutionState, matchesSolutionState)
 			return False
 		elif current == self.count:
 			for i in range(len(parents)):
 				for j in range(i + 1, len(parents)):
 					if parents[i] != parents[j]:
 						if not separateRegions(state, parents[i], parents[j]):
+							checkOrDie(state, solutionState, matchesSolutionState)
 							return False
 		else:
 			upList = list(unique_parents)
@@ -39,17 +42,19 @@ class WatchtowerSymbol(VertexSymbol):
 					if state.uf.canJoin(upList[i], upList[j]):
 						pairs += [(upList[i], upList[j])]
 			if current - len(pairs) > self.count:
+				checkOrDie(state, solutionState, matchesSolutionState)
 				return False
 			elif current - len(pairs) == self.count:
 				for p in pairs:
 					if not joinRegions(state, p[0], p[1]):
+						checkOrDie(state, solutionState, matchesSolutionState)
 						return False
 		return True
 
 
 class WatchtowerConstraint(SymbolConstraint):
-	def propagate(self, state: State) -> bool:
+	def propagate(self, state, solutionState, matchesSolutionState) -> bool:
 		for symbol in self.symbols:
-			if not symbol.propagate(state):
+			if not symbol.propagate(state, solutionState, matchesSolutionState):
 				return False
 		return True

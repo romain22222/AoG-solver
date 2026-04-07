@@ -33,7 +33,8 @@ def separateRegions(state, p: Position, q: Position) -> bool:
 				state.uf.find(e1[0]) == state.uf.find(q) and state.uf.find(e2[0]) == state.uf.find(p)):
 			if not state.set_edge(e, EdgeState.PRESENT, False):
 				return False
-	state.uf.disjoint(p, q)
+	if not state.uf.disjoint(p, q):
+		return False
 	return True
 
 
@@ -46,7 +47,8 @@ def joinRegions(state, p: Position, q: Position) -> bool:
 				state.uf.find(e1[0]) == state.uf.find(q) and state.uf.find(e2[0]) == state.uf.find(p)):
 			if not state.set_edge(e, EdgeState.ABSENT, False):
 				return False
-	state.uf.union(p, q)
+	if not state.uf.union(p, q):
+		return False
 	return True
 
 
@@ -69,7 +71,8 @@ def closeRegion(state, p: Position, willTakeConnectables: bool) -> bool:
 			tmp = set(state.uf.connectables[state.uf.find(p)])
 	else:
 		for c in tmp:
-			separateRegions(state, p, c)
+			if not separateRegions(state, p, c):
+				return False
 	return True
 
 

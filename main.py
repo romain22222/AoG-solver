@@ -4,7 +4,7 @@ from solver import State, Solver, get_vertices
 from examples import puzzleList
 
 
-def initPuzzle(p: Puzzle) -> tuple[Puzzle, State]:
+def initPuzzle(p: Puzzle) -> tuple[Puzzle, State, State]:
 	testedGrid = p["grid"]
 	testedGrid.setHoles(p["holes"])
 	testedVertices = get_vertices(p["grid"])
@@ -21,8 +21,22 @@ def initPuzzle(p: Puzzle) -> tuple[Puzzle, State]:
 		if not state.set_edge(e, EdgeState.PRESENT):
 			raise Exception("Invalid forced edge: " + str(e))
 
+	if p["solution"]:
+		sState = state.clone()
+		present, absent = p["solution"]
+		for e in present:
+			if e in sState.edges:
+				sState.set_edge(e, EdgeState.PRESENT, True)
+		for e in absent:
+			if e in sState.edges:
+				sState.set_edge(e, EdgeState.ABSENT, True)
+		print("Provided solution:")
+		sState.show()
+	else:
+		sState = None
+
 	testedGrid.setConstraints(testedConstraints)
-	return p, state
+	return p, state, sState
 
 
 if __name__ == "__main__":
@@ -52,7 +66,7 @@ if __name__ == "__main__":
 				print(f"Error translating : {e}")
 				print(p)
 				exit(0)
-			puzzle, initialState = initPuzzle(puzzle)
+			puzzle, initialState, solutionState = initPuzzle(puzzle)
 			solver = Solver(puzzle["grid"], puzzle["constraints"])
 			try:
 				solver.solve(initialState)
@@ -67,7 +81,7 @@ if __name__ == "__main__":
 				print("Solutions:")
 				for solutionNumber, solution in enumerate(solver.solutions):
 					print(f"Solution {solutionNumber + 1}:")
-					solution.show(puzzle["constraints"], puzzle["holes"])
+					solution.show()
 					print("---")
 				exit(0)
 		print("All good !")
@@ -77,14 +91,17 @@ if __name__ == "__main__":
 		print("Invalid mode")
 		exit()
 
-	puzzle, initialState = initPuzzle(puzzle)
+	puzzle, initialState, solutionState = initPuzzle(puzzle)
+	if solutionState and not solutionState.is_valid_partition():
+		print("Provided solution is invalid")
+		exit()
 	solver = Solver(puzzle["grid"], puzzle["constraints"])
-	solver.solve(initialState)
+	solver.solve(initialState, solutionState)
 
 	print(f"First solution: {solver.firstS}")
 	print(f"Total: {solver.finalT}")
 	print("Number of solutions found:", len(solver.solutions))
 	for solutionNumber, solution in enumerate(solver.solutions):
 		print(f"Solution {solutionNumber + 1}:")
-		solution.show(puzzle["constraints"], puzzle["holes"])
+		solution.show()
 		print("---")

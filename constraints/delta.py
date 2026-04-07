@@ -2,6 +2,7 @@ from constraints import EdgeSymbol
 from constraints.base import SymbolConstraint
 from edges import FullEdge
 from regionHelper import get_region_shape, joinRegions
+from solver import compareSolution, checkOrDie
 
 
 class DeltaSymbol(EdgeSymbol):
@@ -9,7 +10,7 @@ class DeltaSymbol(EdgeSymbol):
 		super().__init__(edge)
 		self.text = "δ"
 
-	def propagate(self, state) -> bool:
+	def propagate(self, state, solutionState, matchesSolutionState) -> bool:
 		if not super().propagate(state):
 			return False
 		r1, r2 = state.uf.find(self.edge[0][0]), state.uf.find(self.edge[1][0])
@@ -19,19 +20,26 @@ class DeltaSymbol(EdgeSymbol):
 			return True
 		if r1Shape == r2Shape:
 			if r1Closed and r2Closed:
+				checkOrDie(state, solutionState, matchesSolutionState)
 				return False
 			if r1Closed:
 				if len(state.uf.connectables[r2]) == 1:
-					return joinRegions(state, r2, next(iter(state.uf.connectables[r2])))
+					res = joinRegions(state, r2, next(iter(state.uf.connectables[r2])))
+					if not res:
+						checkOrDie(state, solutionState, matchesSolutionState)
+					return res
 			else:
 				if len(state.uf.connectables[r1]) == 1:
-					return joinRegions(state, r1, next(iter(state.uf.connectables[r1])))
+					res = joinRegions(state, r1, next(iter(state.uf.connectables[r1])))
+					if not res:
+						checkOrDie(state, solutionState, matchesSolutionState)
+					return res
 		return True
 
 
 class DeltaConstraint(SymbolConstraint):
-	def propagate(self, state) -> bool:
-		for s in self.symbols:
-			if not s.propagate(state):
+	def propagate(self, state, solutionState, matchesSolutionState) -> bool:
+		for symbol in self.symbols:
+			if not symbol.propagate(state, solutionState, matchesSolutionState):
 				return False
 		return True

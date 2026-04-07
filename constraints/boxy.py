@@ -1,12 +1,13 @@
 from constraints import Constraint
 from regionHelper import get_region_cells, is_rectangle
+from solver import checkOrDie
 
 
 class BoxyConstraint(Constraint):
     def __init__(self):
         super().__init__()
-    
-    def propagate(self, state) -> bool:
+
+    def propagate(self, state, solutionState, matchesSolutionState) -> bool:
         for region_id in state.uf.parentList:
             cells = get_region_cells(state, region_id)
             if is_rectangle(cells):
@@ -24,11 +25,16 @@ class BoxyConstraint(Constraint):
                         missing_cells.append((x, y))
             
             if not missing_cells:
+                checkOrDie(state, solutionState, matchesSolutionState)
                 return False
             
             for m in missing_cells:
                 if not state.uf.union(region_id, m):
+                    checkOrDie(state, solutionState, matchesSolutionState)
                     return False
             else:
-                return self.propagate(state)
+                res = self.propagate(state)
+                if not res:
+                    checkOrDie(state, solutionState, matchesSolutionState)
+                return res
         return True
